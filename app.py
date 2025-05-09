@@ -128,4 +128,4 @@ def get_mnist_image(index):
     return send_file(buf, mimetype='image/png')
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app)
