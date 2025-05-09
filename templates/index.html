@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <title>Abgabe MLP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main_body.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mlp_config.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+</head>
+
+<body>
+    <header>
+        <a id="home-link" data-action="home" style="cursor: pointer;">
+            <span id="header-text">MLP</span>
+        </a>
+    </header>
+
+    <div id="main">
+        <div id="links">
+            <h1>Trainings-Diagramme</h1>
+            <div id="Diagramm">
+                <div>
+                    <h2>Loss-Diagramm</h2>
+                    <!-- Plotly-Diagramm für Loss -->
+                    {% if graph_html_loss %}
+                    <div id="loss-graph">{{ graph_html_loss|safe }}</div>
+                    {% else %}
+                    <div id="loss-graph">Lädt...</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h2>Accuracy-Diagramm</h2>
+                    <!-- Plotly-Diagramm für Accuracy -->
+                    {% if graph_html_acc %}
+                    <div id="acc-graph">{{ graph_html_acc|safe }}</div>
+                    {% else %}
+                    <div id="acc-graph">Lädt...</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="rechts">
+            <div id="mnist-viewer">
+                <h2>MNIST-Beispielbild</h2>
+                <img id="mnist-img" src="/mnist_image/0" width="200" />
+                <br>
+                <label>Index: <span id="img-index-val">0</span></label>
+                <input type="range" id="mnist-slider" min="0" max="9999" value="0" step="1" />
+            </div>
+            <h2>Parameter</h2>
+            <form action="/train" method="POST">
+                <label>Lernrate: <span id="lr_val">0.001</span></label><br>
+                <input type="range" id="lr_slider" name="lr" min="0.0001" max="0.1" step="0.0001" value="0.001" oninput="lr_val.innerText = this.value"><br>
+
+                <label>Epochen: <span id="epochs_val">2</span></label><br>
+                <input type="range" id="epochs_slider" name="epochs" min="1" max="50" step="1" value="2" oninput="epochs_val.innerText = this.value"><br>
+
+                <button type="submit">Trainieren</button>
+            </form>
+            <div id="trainingLogs">
+                <h2>Training Logs:</h2>
+                <ul id="logList">
+                    <!-- Hier werden die Lognachrichten angezeigt -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        // MNIST Slider und Bild-Update
+        document.getElementById('mnist-slider').addEventListener('input', function() {
+            const index = this.value;
+            document.getElementById('img-index-val').innerText = index;
+            document.getElementById('mnist-img').src = `/mnist_image/${index}`;
+        });
+    </script>
+
+    <script>
+        // WebSocket-Verbindung zum Server
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Wenn eine neue Nachricht empfangen wird, füge sie zur Log-Liste hinzu
+        socket.on('training_log', function(data) {
+            var logMessage = data.message;
+            var logList = document.getElementById('logList');
+            var newLog = document.createElement('li');
+            newLog.textContent = logMessage;
+            logList.appendChild(newLog);
+
+            // Zeige den Ladeindikator an, wenn das Training gestartet wird
+            if (logMessage.includes("Trainieren gestartet")) {
+                document.getElementById('loading-spinner').style.display = 'block';
+            }
+
+            // Verstecke den Ladeindikator, wenn das Training abgeschlossen ist
+            if (logMessage.includes("Test Accuracy")) {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+        });
+
+        // Diagramme dynamisch einfügen
+        socket.on('training_plot', function(data) {
+            if (data.graph_html_loss) {
+                document.querySelector('#loss-graph').innerHTML = data.graph_html_loss;
+            }
+            if (data.graph_html_acc) {
+                document.querySelector('#acc-graph').innerHTML = data.graph_html_acc;
+            }
+        });
+    </script>
+
+</body>
+</html>

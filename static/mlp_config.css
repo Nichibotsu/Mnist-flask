@@ -1,0 +1,51 @@
+#mlp_config{
+    display:flexbox;
+    font-size:3em ;
+
+}
+input[type=range] {
+    width: 25%; /* oder mehr */
+    margin-bottom: 15px;
+}
+input[type=submit]{
+    width:25%;
+    height:25%;
+    padding:20px 0 20px 0;
+}
+
+
+#main{
+    margin-top: 2em;
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+    
+#Diagramm h1{
+    text-align: center;
+    margin: auto;
+
+}
+#rechts{
+    padding-left: 1em;
+}
+
+#trainingLogs{
+    margin-top: 1em;
+    border: 2px;
+    border-style: dotted;
+    border-color:#401d5b ;
+    background-color: #aca6a68e;
+
+
+}
+li {
+  list-style: none;
+}
+#mnist-viewer {
+    margin-top: 40px;
+    text-align: center;
+}
+#mnist-img {
+    border: 1px solid #aaa;
+    margin-bottom: 10px;
+}
